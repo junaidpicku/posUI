@@ -1,0 +1,69 @@
+/* ConvoHub — Verify / OTP Page */
+.otp-page {
+  background: var(--bg-page);
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 24px;
+}
+.otp-content {
+  width: 100%; max-width: 440px; background: var(--bg-card);
+  padding: 40px; border-radius: var(--radius-xl);
+  border: 1px solid var(--border); margin: auto; text-align: center;
+}
+.hotelogix-logo { display: flex; justify-content: center; align-items: center; margin-bottom: 28px; }
+.hotelogix-logo img { height: 44px; width: auto; object-fit: contain; }
+.otp-title { font-size: 22px; font-weight: 700; color: var(--text-heading); margin-bottom: 8px; }
+.otp-description { color: var(--text-muted); margin-bottom: 6px; font-size: 14px; }
+.phone-display { font-weight: 600; color: var(--primary-text); margin-bottom: 28px; font-size: 15px; }
+
+.otp-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 28px; }
+.otp-input {
+  width: 52px; height: 60px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  font-size: 22px; font-weight: 700;
+  font-family: 'Courier New', monospace;
+  background: white; color: var(--text-heading);
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+.otp-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+  transform: scale(1.04);
+}
+
+.otp-btn {
+  width: 100%; padding: 12px;
+  background: var(--primary); border: none;
+  border-radius: var(--radius); color: white;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: background var(--transition);
+  margin-bottom: 14px; font-family: inherit;
+}
+.otp-btn:hover:not(:disabled) { background: var(--primary-hover); }
+.otp-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.resend-section { text-align: center; }
+.resend-btn {
+  background: none; border: none; color: var(--primary);
+  font-weight: 500; cursor: pointer; text-decoration: underline;
+  font-size: 14px; font-family: inherit;
+}
+
+@media (max-width: 480px) {
+  .otp-content { padding: 28px 20px; }
+  .otp-input { width: 44px; height: 54px; font-size: 18px; }
+  .otp-container { gap: 8px; }
+}
+
+/* ── DARK MODE ── */
+[data-theme="dark"] .otp-page { background:var(--bg); }
+[data-theme="dark"] .otp-content { background:var(--surface); border-color:var(--border); }
+[data-theme="dark"] .otp-title { color:var(--txt); }
+[data-theme="dark"] .otp-description { color:var(--txt2); }
+[data-theme="dark"] .phone-display { color:var(--gold); }
+[data-theme="dark"] .otp-input { background:var(--surface2); border-color:var(--border2); color:var(--txt); }
+[data-theme="dark"] .otp-input:focus { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-dim); }
+[data-theme="dark"] .otp-btn { background:linear-gradient(135deg,var(--gold),#E8860A); color:#1A1100; }
+[data-theme="dark"] .resend-btn { color:var(--gold); }

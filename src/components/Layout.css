@@ -1,0 +1,45 @@
+/* Layout — shared page shell */
+.layout { min-height: 100vh; background: #f9fafb; display: flex; flex-direction: column; }
+
+.layout-header {
+  position: sticky; top: 0; z-index: 100;
+  background: white; border-bottom: 1px solid #e5e7eb;
+  height: 56px; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 16px;
+  flex-shrink: 0;
+}
+
+.layout-header-left { display: flex; align-items: center; gap: 10px; }
+.layout-header-right { display: flex; align-items: center; gap: 8px; }
+
+/* Hamburger */
+.layout-hamburger {
+  width: 38px; height: 38px; background: #f3f4f6; border: 1px solid #e5e7eb;
+  border-radius: 10px; cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4.5px;
+  transition: all 150ms; flex-shrink: 0;
+}
+.layout-hamburger:hover { background: #e5e7eb; border-color: #1565C0; }
+.layout-hamburger span {
+  display: block; width: 16px; height: 2px; background: #374151;
+  border-radius: 2px; transition: background 150ms;
+}
+.layout-hamburger:hover span { background: #1565C0; }
+
+/* Back button */
+.layout-back {
+  width: 34px; height: 34px; background: #f3f4f6; border: 1px solid #e5e7eb;
+  border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: #374151; transition: all 150ms;
+}
+.layout-back:hover { background: #e5e7eb; border-color: #1565C0; color: #1565C0; }
+
+.layout-title {
+  font-size: 16px; font-weight: 700; color: #111827;
+}
+
+.layout-content { flex: 1; }
+
+@media (max-width: 480px) {
+  .layout-header { padding: 0 12px; }
+}

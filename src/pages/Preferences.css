@@ -1,0 +1,291 @@
+/* ConvoHub — Preferences Page */
+.preferences-page {
+  background: var(--bg-page);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.preferences-content {
+  width: 100%;
+  max-width: 960px;
+  background: var(--bg-card);
+  padding: 40px 32px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  margin: auto;
+}
+
+.hotelogix-logo { display: flex; justify-content: center; align-items: center; margin-bottom: 28px; }
+.hotelogix-logo img { height: 44px; width: auto; object-fit: contain; }
+
+.step-section { animation: fadeIn 0.3s ease; }
+
+.step-section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 6px;
+  text-align: center;
+}
+.step-section > p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.back-step-btn {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.back-step-btn:hover { background: var(--border); color: var(--text-heading); }
+
+/* Outlet grid */
+.outlet-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.outlet-option {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px 20px;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.outlet-option:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.08);
+  transform: translateY(-2px);
+}
+.outlet-option.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.outlet-icon { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+.outlet-title { font-size: 16px; font-weight: 600; color: var(--text-heading); margin-bottom: 6px; }
+.outlet-description { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
+.outlet-time {
+  font-size: 12px;
+  color: var(--primary-text);
+  font-weight: 500;
+  background: var(--primary-100);
+  padding: 3px 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+/* Preference/shift cards */
+#dynamicPreferences {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  padding: 8px 0;
+  width: 100%;
+}
+
+.shift-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 16px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  background: var(--bg-card);
+  transition: all var(--transition);
+}
+.shift-option:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.08);
+  transform: translateY(-2px);
+}
+
+.shift-icon { width: 100%; display: flex; justify-content: center; margin-bottom: 10px; }
+.shift-icon img { width: 100%; max-width: 72px; height: 72px; object-fit: cover; border-radius: var(--radius); }
+
+.shift-title { font-size: 13px; font-weight: 600; color: var(--text-heading); margin-bottom: 3px; word-break: break-word; }
+.shift-description { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+.shift-time { font-size: 11px; color: var(--text-muted); }
+.shift-item-count {
+  font-size: 12px; color: var(--primary-text); font-weight: 600; margin-top: 4px;
+  background: var(--primary-100); padding: 2px 8px; border-radius: 999px;
+}
+
+/* Guest Login Modal */
+.login-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10000;
+}
+.login-modal-content {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: var(--shadow-modal);
+}
+.login-modal-icon { font-size: 2.5rem; text-align: center; margin-bottom: 14px; }
+.login-modal-title { font-size: 18px; font-weight: 700; color: var(--text-heading); text-align: center; margin-bottom: 8px; }
+
+.login-guest-info {
+  background: var(--bg-muted);
+  padding: 14px;
+  border-radius: var(--radius);
+  margin: 16px 0;
+}
+.login-guest-info p { margin: 6px 0; color: var(--text-muted); font-size: 13px; }
+.login-guest-info strong { color: var(--text-heading); font-weight: 600; }
+
+.login-form-group { margin-bottom: 16px; }
+.login-form-group label {
+  display: block; margin-bottom: 6px;
+  color: var(--text-label); font-weight: 600;
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.login-form-group input {
+  width: 100%; padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.login-form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+}
+
+.login-btn {
+  width: 100%; padding: 12px;
+  background: var(--primary); color: white;
+  border: none; border-radius: var(--radius);
+  font-size: 15px; font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition);
+  font-family: inherit;
+}
+.login-btn:hover:not(:disabled) { background: var(--primary-hover); }
+.login-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+.login-error {
+  background: var(--error-bg); color: var(--error-text);
+  padding: 10px 14px; border-radius: var(--radius);
+  margin-top: 12px; font-size: 13px; text-align: center;
+  border: 1px solid var(--error-border);
+}
+
+/* Room Info modal */
+.room-info-modal {
+  position: fixed; inset: 0;
+  background: var(--bg-page, #f9fafb);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10000; padding: 20px;
+}
+.room-info-content {
+  background: white; border-radius: var(--radius-xl); padding: 32px;
+  max-width: 420px; width: 100%; text-align: center;
+  box-shadow: var(--shadow-modal);
+}
+.room-info-icon { font-size: 3rem; margin-bottom: 16px; }
+.room-info-title { font-size: 18px; font-weight: 700; color: var(--text-heading); margin-bottom: 12px; }
+.room-info-message { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+.room-info-tip {
+  background: var(--primary-light); padding: 14px; border-radius: var(--radius);
+  border-left: 4px solid var(--primary); text-align: left; font-size: 13px; color: var(--text-body);
+}
+.room-info-tip strong { color: var(--primary-text); }
+
+/* No category modal */
+#noCategoryModal {
+  position: fixed; inset: 0;
+  background: var(--bg-page, #f9fafb);
+  display: flex; align-items: center;
+  justify-content: center; z-index: 10000; padding: 20px;
+}
+
+@media (max-width: 1024px) { #dynamicPreferences { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 768px) {
+  .preferences-content { padding: 28px 20px; }
+  #dynamicPreferences { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .outlet-options { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .preferences-page { padding: 16px; }
+  #dynamicPreferences { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+}
+@media (max-width: 320px) { #dynamicPreferences { grid-template-columns: 1fr; } }
+
+/* ── DARK MODE ── */
+[data-theme="dark"] .preferences-page { background:var(--bg); }
+[data-theme="dark"] .preferences-content { background:var(--surface); border-color:var(--border); }
+[data-theme="dark"] .step-section h2 { color:var(--txt); }
+[data-theme="dark"] .step-section > p { color:var(--txt3); }
+[data-theme="dark"] .outlet-option { background:var(--surface); border-color:var(--border); }
+[data-theme="dark"] .outlet-option:hover { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-dim); }
+[data-theme="dark"] .outlet-option.selected { border-color:var(--gold); background:var(--gold-dim); }
+[data-theme="dark"] .outlet-title { color:var(--txt); }
+[data-theme="dark"] .outlet-description { color:var(--txt2); }
+[data-theme="dark"] .outlet-time { background:rgba(245,166,35,0.15); color:var(--gold); }
+[data-theme="dark"] .shift-option { background:var(--surface); border-color:var(--border); }
+[data-theme="dark"] .shift-option:hover { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-dim); }
+[data-theme="dark"] .shift-title { color:var(--txt); }
+[data-theme="dark"] .shift-description, [data-theme="dark"] .shift-time { color:var(--txt3); }
+[data-theme="dark"] .shift-item-count { background:rgba(245,166,35,0.15); color:var(--gold); }
+[data-theme="dark"] .back-step-btn { background:var(--bg3); border-color:var(--border); color:var(--txt2); }
+[data-theme="dark"] .back-step-btn:hover { background:var(--bg4); color:var(--txt); }
+[data-theme="dark"] .login-modal-content { background:var(--surface); }
+[data-theme="dark"] .login-modal-title { color:var(--txt); }
+[data-theme="dark"] .login-guest-info { background:var(--bg3); }
+[data-theme="dark"] .login-guest-info p { color:var(--txt2); }
+[data-theme="dark"] .login-guest-info strong { color:var(--txt); }
+[data-theme="dark"] .login-form-group label { color:var(--txt3); }
+[data-theme="dark"] .login-form-group input { background:var(--surface2); border-color:var(--border2); color:var(--txt); }
+[data-theme="dark"] .login-btn { background:linear-gradient(135deg,var(--gold),#E8860A) !important; color:#1A1100 !important; }
+[data-theme="dark"] .login-error { background:rgba(248,113,113,0.1); border-color:rgba(248,113,113,0.3); color:#FCA5A5; }
+
+/* Dark mode: room info modal background */
+[data-theme="dark"] .room-info-modal,
+[data-theme="dark"] #noCategoryModal {
+  background: var(--bg, #111111);
+}
+[data-theme="dark"] .room-info-content {
+  background: var(--surface, #1a1a1a);
+  border: 1px solid var(--border);
+}
+[data-theme="dark"] .room-info-title   { color: var(--txt); }
+[data-theme="dark"] .room-info-message { color: var(--txt2); }
+[data-theme="dark"] .room-info-tip {
+  background: rgba(245,166,35,0.1);
+  border-left-color: #F5A623;
+  color: var(--txt2);
+}
+[data-theme="dark"] .room-info-tip strong { color: #F5A623; }

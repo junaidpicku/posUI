@@ -1,0 +1,45 @@
+.sg-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px); z-index: 9999;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  animation: sgFade 0.2s ease;
+}
+@keyframes sgFade { from{opacity:0} to{opacity:1} }
+
+.sg-modal {
+  background: var(--surface, #fff); border-radius: 20px;
+  padding: 36px 32px; max-width: 400px; width: 100%;
+  text-align: center; box-shadow: 0 32px 64px rgba(0,0,0,0.4);
+  animation: sgPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes sgPop { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+
+.sg-icon  { font-size: 3rem; margin-bottom: 12px; }
+.sg-title { font-size: 20px; font-weight: 800; color: var(--txt,#111827); margin-bottom: 10px; }
+.sg-msg   { font-size: 14px; color: var(--txt2,#6b7280); line-height: 1.6; margin-bottom: 24px; }
+
+.sg-actions { display: flex; flex-direction: column; gap: 10px; }
+.sg-btn {
+  padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 800;
+  cursor: pointer; border: none; font-family: inherit; transition: all 150ms;
+}
+.sg-btn--primary { background: linear-gradient(135deg,#1565C0,#0D47A1); color: white; box-shadow: 0 4px 14px rgba(21,101,192,0.3); }
+.sg-btn--primary:hover { transform: translateY(-2px); }
+.sg-btn--ghost   { background: var(--bg3,#f3f4f6); color: var(--txt2,#4b5563); border: 1px solid var(--border,#e5e7eb); }
+.sg-btn--ghost:hover { background: var(--bg4,#e5e7eb); }
+/* ─── QR Hint box ──────────────────────────── */
+.sg-qr-hint {
+  background: rgba(245,166,35,0.1);
+  border: 1px solid rgba(245,166,35,0.25);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px; font-weight: 600;
+  color: #b45309;
+  text-align: center;
+  margin: 16px 0;
+  line-height: 1.5;
+}
+[data-theme="dark"] .sg-qr-hint {
+  background: rgba(245,166,35,0.08);
+  color: #F5A623;
+}
