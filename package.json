@@ -15,9 +15,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "start:ssl": "cross-env PORT=3002 HTTPS=true SSL_CRT_FILE=/etc/nginx/ssl/certificate.crt SSL_KEY_FILE=/etc/nginx/ssl/private.key react-scripts start",
-    "start:nossl": "cross-env PORT=3002 HTTPS=false react-scripts start",
+   "start": "cross-env PORT=3002 HTTPS=false react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
