@@ -12,6 +12,24 @@ export function triggerSessionExpired() {
   window.dispatchEvent(new CustomEvent('pos:session-expired'));
 }
 
+const PUBLIC_ROUTES = ['/', '/login', '/verify', '/preferences'];
+
+/* ── Hard logout: clears storage + forces browser to / (survives refresh) ── */
+function hardLogout() {
+  localStorage.clear();
+  window.location.replace('/');
+}
+
+/* ── Check idle time synchronously (used on page load/refresh) ── */
+function isIdleExpired() {
+  try {
+    const sessionData = JSON.parse(localStorage.getItem('sessionData') || '{}');
+    if (!sessionData.lastActivity) return false;
+    const inactiveTime = Date.now() - new Date(sessionData.lastActivity).getTime();
+    return inactiveTime > getSessionTimeoutMs();
+  } catch { return false; }
+}
+
 /* ── SessionGuard wraps the whole app ── */
 export default function SessionGuard({ children }) {
   const navigate = useNavigate();
@@ -30,40 +48,47 @@ export default function SessionGuard({ children }) {
     };
   }, [handleUnauthorized, handleExpired]);
 
-  // Check session on initial load
+  // ── On every mount/refresh: immediately check idle + auth ──────────────
   useEffect(() => {
     const path = window.location.pathname;
-    const publicRoutes = ['/', '/login', '/verify', '/preferences'];
-    if (!publicRoutes.includes(path) && !isLoggedIn()) {
-      setModal('expired');
-    }
-  }, []);
+    if (PUBLIC_ROUTES.includes(path)) return;
 
-  // ── Inactivity timer — check every 10 seconds ──
+    // Not logged in at all
+    if (!isLoggedIn()) {
+      hardLogout();
+      return;
+    }
+
+    // Logged in but idle time already exceeded (e.g. user left tab open, came back)
+    if (isIdleExpired()) {
+      hardLogout();
+      return;
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Inactivity interval watcher ────────────────────────────────────────
   useEffect(() => {
-    // Track user activity
     const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
     activityEvents.forEach(evt =>
       document.addEventListener(evt, updateLastActivity, true)
     );
 
-    // Check for timeout periodically
     intervalRef.current = setInterval(() => {
       if (window.isLoginInProgress) return;
       const path = window.location.pathname;
-      const publicRoutes = ['/', '/login', '/verify', '/preferences'];
-      if (publicRoutes.includes(path)) return;
+      if (PUBLIC_ROUTES.includes(path)) return;
       if (!isLoggedIn()) return;
 
       const sessionData = JSON.parse(localStorage.getItem('sessionData') || '{}');
       if (!sessionData.lastActivity) return;
 
-      const lastActivity = new Date(sessionData.lastActivity);
-      const inactiveTime = Date.now() - lastActivity.getTime();
+      const inactiveTime = Date.now() - new Date(sessionData.lastActivity).getTime();
       const timeout = getSessionTimeoutMs();
 
       if (inactiveTime > timeout) {
         clearInterval(intervalRef.current);
+        // Clear storage immediately, then show modal
+        localStorage.clear();
         setModal('timeout');
       }
     }, ACTIVITY_CHECK_INTERVAL);
@@ -74,12 +99,13 @@ export default function SessionGuard({ children }) {
         document.removeEventListener(evt, updateLastActivity, true)
       );
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleGoToQR() {
-    setModal(null);
+    // Storage already cleared at timeout trigger; ensure cleared here too
     localStorage.clear();
-    navigate('/?logged_out=1');
+    setModal(null);
+    window.location.replace('/');
   }
 
   function handleContinue() {
@@ -93,15 +119,12 @@ export default function SessionGuard({ children }) {
       {modal && (
         <div className="sg-overlay">
           <div className="sg-modal">
-            {/* Session Timeout — like vanilla JS version */}
             {modal === 'timeout' && (
               <>
                 <div className="sg-icon">⏱️</div>
                 <h2 className="sg-title" style={{color:'#dc2626'}}>Session Timeout</h2>
                 <p className="sg-msg">Session expired due to inactivity. You have been logged out for security reasons.</p>
-                <div className="sg-qr-hint">
-                  Please scan the QR code again to continue
-                </div>
+                <div className="sg-qr-hint">Please scan the QR code again to continue</div>
                 <div className="sg-actions">
                   <button className="sg-btn sg-btn--primary" onClick={handleGoToQR}>
                     Return to Scan QR
@@ -110,15 +133,12 @@ export default function SessionGuard({ children }) {
               </>
             )}
 
-            {/* Session Expired */}
             {modal === 'expired' && (
               <>
                 <div className="sg-icon">⏱️</div>
                 <h2 className="sg-title">Session Expired</h2>
                 <p className="sg-msg">Your session has expired. Please scan the QR code again to continue.</p>
-                <div className="sg-qr-hint">
-                  Please scan the QR code again to continue
-                </div>
+                <div className="sg-qr-hint">Please scan the QR code again to continue</div>
                 <div className="sg-actions">
                   <button className="sg-btn sg-btn--primary" onClick={handleGoToQR}>
                     Return to Scan QR
@@ -127,7 +147,6 @@ export default function SessionGuard({ children }) {
               </>
             )}
 
-            {/* Unauthorized */}
             {modal === 'unauthorized' && (
               <>
                 <div className="sg-icon">🔒</div>

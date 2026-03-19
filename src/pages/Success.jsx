@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API_BASE from '../config';
 import Sidebar from '../components/Sidebar';
@@ -67,10 +67,14 @@ export default function Success() {
   const { t } = useLang();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [phase, setPhase] = useState('loading'); // loading | success | failure | error | authError
+  const hasFired = useRef(false); // StrictMode guard — prevents double API call
   const [results, setResults] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
+    if (hasFired.current) return; // StrictMode fires effects twice in dev — block second run
+    hasFired.current = true;
+
     const raw = localStorage.getItem('currentOrder');
     const orderData = safeJSONParse(raw, null);
 

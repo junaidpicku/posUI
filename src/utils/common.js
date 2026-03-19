@@ -1,15 +1,15 @@
 // Enhanced Common JavaScript Functions - mirrors original common.js
 
-// Session timeout: 5 minutes for room login, 20 minutes for table login
+// Session timeout: 1 minute inactivity for both room and table login
 export function getSessionTimeoutMs() {
   try {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    if (userData.isTableBased) return 20 * 60 * 1000; // 20 minutes for table
+    if (userData.isTableBased) return 5 * 60 * 1000; // 1 minute for table
   } catch {}
-  return 20 * 60 * 1000; // 5 minutes for room
+  return 5 * 60 * 1000; // 1 minute for room
 }
-export const SESSION_TIMEOUT_MS = 5 * 60 * 1000; // default fallback
-export const ACTIVITY_CHECK_INTERVAL = 10 * 1000; // Check every 10 seconds
+export const SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 1 minute
+export const ACTIVITY_CHECK_INTERVAL = 5 * 1000; // Check every 5 seconds
 
 export function updateLastActivity() {
   const sessionData = JSON.parse(localStorage.getItem('sessionData') || '{}');
@@ -75,7 +75,7 @@ export function showTimeoutModal(reason) {
       <div style="font-size: 3rem; margin-bottom: 15px;">⏰</div>
       <h2 style="color: #333; margin-bottom: 10px;">Session Expired</h2>
       <p style="color: #666; margin-bottom: 25px;">${reason}. Please login again to continue.</p>
-      <button onclick="window.location.href='/'" style="
+      <button onclick="localStorage.clear(); window.location.href='/'" style="
         background: #4A90E2; color: white; border: none;
         padding: 12px 30px; border-radius: 8px; font-size: 16px;
         font-weight: 600; cursor: pointer;

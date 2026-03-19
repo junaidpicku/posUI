@@ -7,6 +7,15 @@ import './History.css';
 
 const safeParse = (s, fb = []) => { try { return JSON.parse(s); } catch { return fb; } };
 
+function isTableUser() {
+  try {
+    const u = safeParse(localStorage.getItem('userData'), {});
+    if (u?.isTableBased === true)  return true;
+    if (u?.isTableBased === false) return false;
+    return !!(u?.tableId || u?.guest?.tableId || u?.tableNumber || u?.guest?.tableNumber);
+  } catch { return false; }
+}
+
 function fc(n) {
   try { const c = safeParse(localStorage.getItem('userData'), {})?.guest?.currency_symbol || '₹'; return `${c}${(Number(n) || 0).toFixed(2)}`; }
   catch { return `₹${(Number(n) || 0).toFixed(2)}`; }
@@ -135,9 +144,11 @@ export default function History() {
                   <span className="hist-card-time">{dt(o.timestamp)}</span>
                   <span className="hist-card-total">{fc(o.total)}</span>
                 </div>
-                <button className="hist-card-reorder" onClick={e => { e.stopPropagation(); reorderToCart(o); }}>
-                  🔄 Reorder / Modify
-                </button>
+                {isTableUser() && (
+                  <button className="hist-card-reorder" onClick={e => { e.stopPropagation(); reorderToCart(o); }}>
+                    🔄 Reorder / Modify
+                  </button>
+                )}
               </div>
             );
           })
@@ -166,9 +177,11 @@ export default function History() {
             </div>
             <div className="hist-sheet-body">
               <OrderSheet order={selectedOrder} fc={fc} dt={dt} statusColor={statusColor} />
-              <button className="hist-act-btn" style={{ width:'100%', marginTop: 12 }} onClick={() => { setSelectedOrder(null); reorderToCart(selectedOrder); }}>
-                🔄 Reorder / Modify This Order
-              </button>
+              {isTableUser() && (
+                <button className="hist-act-btn" style={{ width:'100%', marginTop: 12 }} onClick={() => { setSelectedOrder(null); reorderToCart(selectedOrder); }}>
+                  🔄 Reorder / Modify This Order
+                </button>
+              )}
             </div>
           </div>
         </>

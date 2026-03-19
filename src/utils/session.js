@@ -26,3 +26,13 @@ export const checkAuth = (navigate) => {
   }
   return true;
 };
+
+export default {
+  safeJSON,
+  getUser,
+  getToken,
+  getCurrencySymbol,
+  isLoggedIn,
+  logout,
+  checkAuth,
+};

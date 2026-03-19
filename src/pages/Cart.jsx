@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ThemeLangBar from '../components/ThemeLangBar';
 import { useTheme } from '../context/ThemeContext';
-import { getCurrencySymbol } from '../utils/session';
+
 import './Cart.css';
 
 /* ─── helpers ──────────────────────────────── */
 const safeJSON  = (s,fb) => { try{return JSON.parse(s);}catch{return fb;} };
+const getCurrencySymbol = () => { try { const u = safeJSON(localStorage.getItem('userData'),{}); return u?.guest?.currency_symbol||u?.currency_symbol||'₹'; } catch { return '₹'; }};
 const currency  = () => getCurrencySymbol();
 const fmt       = n  => `${currency()} ${Number(n||0).toFixed(2)}`;
 
@@ -80,6 +81,15 @@ export default function Cart() {
   const { isDark }  = useTheme();
   const [cart, setCart]         = useState([]);
   const [menuItems, setMenuItems] = useState([]);
+
+  const userData  = safeJSON(localStorage.getItem('userData'), {});
+  const guestName = userData?.guestName || userData?.guest?.guest_name || userData?.name || 'Guest';
+  const room      = userData?.guest?.guestRoomId || userData?.guest?.room || userData?.roomNumber || '';
+
+  function handleLogout() {
+    localStorage.clear();
+    navigate('/');
+  }
 
   useEffect(() => {
     document.title = 'Cart — POS';
@@ -161,6 +171,12 @@ export default function Cart() {
         <div className="cart-hdr__right">
           <ThemeLangBar compact={true} />
           <button className="cart-hdr__hist" onClick={() => navigate('/history')} title="Order History">📋</button>
+          <button className="cart-hdr__avatar" title={guestName}>
+            {guestName.charAt(0).toUpperCase()}
+          </button>
+          <button className="cart-hdr__logout" onClick={handleLogout} title="Logout">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
         </div>
       </header>
 

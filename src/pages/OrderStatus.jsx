@@ -170,17 +170,6 @@ export default function OrderStatus() {
           </div>
         </div>
 
-        {/* Delivery Estimation */}
-        <div className={`delivery-estimation ${currentStatus === 'delivered' ? 'delivered' : ''}`}>
-          {currentStatus === 'delivered' ? (
-            <div>✅ <strong>Order Delivered Successfully!</strong><div>Thank you for choosing HotelOGIX. Enjoy your meal! 🎉</div></div>
-          ) : estimation && estimation.remaining > 0 ? (
-            <div>⏰ <strong>Estimated delivery in {estimation.remaining} minutes</strong><div className="countdown">Arriving by {estimation.time}</div></div>
-          ) : (
-            <div>🚀 <strong>Your order should arrive any moment now!</strong><div className="countdown">Please be ready to receive your order</div></div>
-          )}
-        </div>
-
         {/* Order Items */}
         <div className="order-items-summary">
           <h3>🍽️ Your Order ({orderData.items?.length || 0} items)</h3>
