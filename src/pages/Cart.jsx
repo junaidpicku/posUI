@@ -28,7 +28,11 @@ function sanitize(items) {
     price: Number(it?.price)||0, customization: it?.customization||{},
     outlet: it?.outlet??'', outletName: it?.outletName??'',
     pos_id: it?.pos_id??'', requiresAdvancePayment: !!it?.requiresAdvancePayment,
-    taxes: Array.isArray(it?.taxes)?it.taxes:[]
+    taxes: Array.isArray(it?.taxes)?it.taxes:[],
+    // preserve order-lock fields if present
+    _orderedQty:       it?._orderedQty       ?? null,
+    _orderTimestamp:   it?._orderTimestamp   ?? null,
+    _orderId:          it?._orderId          ?? null,
   }));
 }
 
@@ -55,6 +59,21 @@ function generateOrderId() {
   return `HX${Date.now().toString().slice(-6)}${Math.floor(Math.random()*1000).toString().padStart(3,'0')}`;
 }
 
+/* ─── Order-lock helpers ────────────────────
+   An item is "locked" when it came from a real placed order (_orderId present).
+   Within 1 minute of the order timestamp the item can still be freely edited.
+   After 1 minute it is read-only (qty can only increase, remove is blocked).
+─────────────────────────────────────────── */
+function isLockedItem(item) {
+  // Only lock items that have a real order ID attached
+  return !!(item?._orderId && item?._orderedQty);
+}
+
+function withinEditWindow(orderTimestamp) {
+  if (!orderTimestamp) return false;
+  return (Date.now() - new Date(orderTimestamp).getTime()) < 60_000;
+}
+
 /* ─── Recommendation Card ──────────────────── */
 function RecommendationCard({ item, onAdd, inCart }) {
   const cur = currency();
@@ -79,12 +98,12 @@ function RecommendationCard({ item, onAdd, inCart }) {
 export default function Cart() {
   const navigate    = useNavigate();
   const { isDark }  = useTheme();
-  const [cart, setCart]         = useState([]);
+  const [cart, setCart]           = useState([]);
   const [menuItems, setMenuItems] = useState([]);
+  const [inlineMsgs, setInlineMsgs] = useState({}); // idx → message string
 
   const userData  = safeJSON(localStorage.getItem('userData'), {});
   const guestName = userData?.guestName || userData?.guest?.guest_name || userData?.name || 'Guest';
-  const room      = userData?.guest?.guestRoomId || userData?.guest?.room || userData?.roomNumber || '';
 
   function handleLogout() {
     localStorage.clear();
@@ -94,37 +113,106 @@ export default function Cart() {
   useEffect(() => {
     document.title = 'Cart — POS';
     setCart(sanitize(getCartData()));
-    // Load menu items for recommendations
     const outlet = safeJSON(localStorage.getItem('outlet'),{});
     if (outlet?.menuItems) setMenuItems(outlet.menuItems);
   }, []);
 
+  /* ── inline warning helper ── */
+  function showInlineMsg(idx, msg) {
+    setInlineMsgs(prev => ({ ...prev, [idx]: msg }));
+    setTimeout(() => {
+      setInlineMsgs(prev => { const n = {...prev}; delete n[idx]; return n; });
+    }, 4000);
+  }
+
   function sync(nc) { setCart(nc); saveCartData(nc); }
 
+  /* ── quantity update ──
+     Rules for locked items (from a real placed order):
+       • Can ALWAYS increase.
+       • Can NEVER decrease below _orderedQty (locked floor).
+       • Within 1 min of order: can decrease down to 1 (but not below _orderedQty floor either,
+         because we lock at original qty per spec "Lock quantity – can't reduce, only increase").
+     So the rule simplifies to: locked items can only go UP.
+  ── */
   function updateQty(idx, delta) {
-    const nc = cart.map((c,i) => i===idx ? {...c, quantity: c.quantity+delta} : c).filter(c=>c.quantity>0);
+    const item = cart[idx];
+
+    if (delta < 0 && isLockedItem(item)) {
+      // Decreasing a locked item is never allowed (spec: lock qty, only increase)
+      if (withinEditWindow(item._orderTimestamp)) {
+        // Even within 1 min, the spec says "can't reduce" for locked items
+        showInlineMsg(idx, 'Ordered quantity cannot be reduced. You can only add more.');
+      } else {
+        showInlineMsg(idx, 'To remove or reduce this item, please contact our team or ask your waiter.');
+      }
+      return;
+    }
+
+    const nc = cart
+      .map((c, i) => i === idx ? { ...c, quantity: c.quantity + delta } : c)
+      .filter(c => c.quantity > 0);
     sync(nc);
   }
 
-  function remove(idx) { sync(cart.filter((_,i)=>i!==idx)); }
+  /* ── remove ──
+     Locked items:
+       • Within 1 min  → show "contact team" message (spec: lock means no reduce/remove)
+       • After 1 min   → show "contact team" message
+     Unlocked (new items added on top of the order) → remove freely.
+  ── */
+  function remove(idx) {
+    const item = cart[idx];
+
+    if (isLockedItem(item)) {
+      if (withinEditWindow(item._orderTimestamp)) {
+        showInlineMsg(idx, 'This item is part of your placed order. To remove it, please contact our team or ask your waiter.');
+      } else {
+        showInlineMsg(idx, 'To remove this item, please contact our team or ask your waiter.');
+      }
+      return;
+    }
+
+    sync(cart.filter((_, i) => i !== idx));
+  }
 
   function clearCart() {
     if (!cart.length) return;
-    if (window.confirm('Clear all items?')) sync([]);
+    // Only clear items that are NOT locked (freely-added items).
+    // If all items are locked, warn the user.
+    const unlocked = cart.filter(c => !isLockedItem(c));
+    const locked   = cart.filter(c =>  isLockedItem(c));
+
+    if (unlocked.length === 0 && locked.length > 0) {
+      alert('All items in your cart are from a placed order. To make changes, please contact our team or ask your waiter.');
+      return;
+    }
+
+    if (window.confirm(
+      locked.length > 0
+        ? `This will remove your ${unlocked.length} new item(s). Your ${locked.length} already-ordered item(s) will remain. Continue?`
+        : 'Clear all items?'
+    )) {
+      sync(locked); // keep locked items, remove only unlocked
+    }
   }
 
   function addRecommendation(item) {
     const nc = [...cart];
     const ex = nc.find(c => String(c.id)===String(item.id));
-    if (ex) { ex.quantity++; } else {
+    if (ex) {
+      ex.quantity++;
+    } else {
       const o = safeJSON(localStorage.getItem('outlet'),{});
       nc.push({
-        id:item.id, name:item.name, price:item.price, image:item.image,
-        category:item.category||'', quantity:1, customization:{},
-        outlet:localStorage.getItem('selectedOutlet')||'',
-        outletName:o.name||'', pos_id:o.pos_id||'',
-        requiresAdvancePayment:item.requiresAdvancePayment||false,
-        taxes:item.taxes||[]
+        id: item.id, name: item.name, price: item.price, image: item.image,
+        category: item.category||'', quantity: 1, customization: {},
+        outlet: localStorage.getItem('selectedOutlet')||'',
+        outletName: o.name||'', pos_id: o.pos_id||'',
+        requiresAdvancePayment: item.requiresAdvancePayment||false,
+        taxes: item.taxes||[],
+        // new additions carry no order lock
+        _orderedQty: null, _orderTimestamp: null, _orderId: null,
       });
     }
     sync(nc);
@@ -156,7 +244,6 @@ export default function Cart() {
 
   const totals = computeTotals(cart);
   const cartIds = new Set(cart.map(c => String(c.id)));
-  // Recommendations: items not in cart, from same outlet
   const recommendations = menuItems.filter(m => !cartIds.has(String(m.id))).slice(0, 8);
 
   return (
@@ -195,44 +282,66 @@ export default function Cart() {
             </div>
 
             <div className="cart-items">
-              {cart.map((item, idx) => (
-                <div key={`${item.id}-${idx}`} className="cart-item">
-                  <div className="cart-item__img" style={{ backgroundImage: item.image?`url('${item.image}')`:'' }}>
-                    {!item.image && <span>🍽️</span>}
-                  </div>
-                  <div className="cart-item__info">
-                    <div className="cart-item__name">{item.name}</div>
-                    {item.category && <div className="cart-item__cat">📂 {item.category}</div>}
-                    {item.outletName && <div className="cart-item__outlet">📍 {item.outletName}</div>}
-                    {(item.customization?.notes||item.customization?.spice) && (
-                      <div className="cart-item__custom">
-                        {item.customization.spice && <span>🌶 {item.customization.spice}</span>}
-                        {item.customization.notes && <span>📝 {item.customization.notes}</span>}
-                      </div>
-                    )}
-                    {/* Taxes per item */}
-                    {item.taxes?.length > 0 && (
-                      <div className="cart-item__taxes">
-                        {item.taxes.map((tx,ti) => {
-                          const rate = Number(tx?.modifiedTaxRate??tx?.taxRate)||0;
-                          const amt  = (Number(item.price)||0)*rate/100*item.quantity;
-                          return <span key={ti} className="cart-item__tax-pill">{tx.taxName} {rate}% = {currency()}{amt.toFixed(2)}</span>;
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  <div className="cart-item__right">
-                    <div className="cart-item__price">{fmt(item.price * item.quantity)}</div>
-                    <div className="cart-item__each">{fmt(item.price)} each</div>
-                    <div className="cart-item__qty">
-                      <button onClick={() => updateQty(idx,-1)}>−</button>
-                      <span>{item.quantity}</span>
-                      <button onClick={() => updateQty(idx,1)}>+</button>
+              {cart.map((item, idx) => {
+                const locked = isLockedItem(item);
+                return (
+                  <div key={`${item.id}-${idx}`} className={`cart-item${locked ? ' cart-item--locked' : ''}`}>
+                    <div className="cart-item__img" style={{ backgroundImage: item.image?`url('${item.image}')`:'' }}>
+                      {!item.image && <span>🍽️</span>}
                     </div>
-                    <button className="cart-item__remove" onClick={() => remove(idx)}>✕ Remove</button>
+                    <div className="cart-item__info">
+                      <div className="cart-item__name">
+                        {item.name}
+                        {locked && <span className="cart-item__ordered-badge">Ordered</span>}
+                      </div>
+                      {item.category && <div className="cart-item__cat">📂 {item.category}</div>}
+                      {item.outletName && <div className="cart-item__outlet">📍 {item.outletName}</div>}
+                      {(item.customization?.notes||item.customization?.spice) && (
+                        <div className="cart-item__custom">
+                          {item.customization.spice && <span>🌶 {item.customization.spice}</span>}
+                          {item.customization.notes && <span>📝 {item.customization.notes}</span>}
+                        </div>
+                      )}
+                      {item.taxes?.length > 0 && (
+                        <div className="cart-item__taxes">
+                          {item.taxes.map((tx,ti) => {
+                            const rate = Number(tx?.modifiedTaxRate??tx?.taxRate)||0;
+                            const amt  = (Number(item.price)||0)*rate/100*item.quantity;
+                            return <span key={ti} className="cart-item__tax-pill">{tx.taxName} {rate}% = {currency()}{amt.toFixed(2)}</span>;
+                          })}
+                        </div>
+                      )}
+                      {/* Inline warning message */}
+                      {inlineMsgs[idx] && (
+                        <div className="cart-item__warn">
+                          ⚠️ {inlineMsgs[idx]}
+                        </div>
+                      )}
+                    </div>
+                    <div className="cart-item__right">
+                      <div className="cart-item__price">{fmt(item.price * item.quantity)}</div>
+                      <div className="cart-item__each">{fmt(item.price)} each</div>
+                      <div className="cart-item__qty">
+                        {/* Minus button: disabled for locked items */}
+                        <button
+                          onClick={() => updateQty(idx, -1)}
+                          disabled={locked}
+                          title={locked ? 'Cannot reduce ordered items' : ''}
+                        >−</button>
+                        <span>{item.quantity}</span>
+                        <button onClick={() => updateQty(idx, 1)}>+</button>
+                      </div>
+                      {/* Remove button: for locked items shows warning, for free items removes */}
+                      <button
+                        className={`cart-item__remove${locked ? ' cart-item__remove--locked' : ''}`}
+                        onClick={() => remove(idx)}
+                      >
+                        {locked ? '🔒 Locked' : '✕ Remove'}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* ── ORDER SUMMARY ── */}

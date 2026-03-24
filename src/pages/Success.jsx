@@ -235,10 +235,6 @@ export default function Success() {
               ))}
             </div>
 
-            <div className="success-delivery-box">
-              <strong>Estimated Delivery:</strong> {getEstimatedDeliveryTime()}
-            </div>
-
             <button className="success-primary-btn" onClick={() => navigate('/menu')}>Back to Menu</button>
             <button className="success-secondary-btn" onClick={() => navigate('/history')}>View Order History</button>
           </div>

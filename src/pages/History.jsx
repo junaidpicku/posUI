@@ -39,39 +39,71 @@ function statusColor(s) {
   if (st==='cancelled') return { bg:'rgba(239,68,68,0.12)',  color:'#dc2626', label:'✕ Cancelled' };
   return { bg:'rgba(107,114,128,0.12)', color:'#6b7280', label: s || 'Pending' };
 }
-const safeJSON  = (s,fb) => { try{return JSON.parse(s);}catch{return fb;} };
 
 export default function History() {
   const navigate = useNavigate();
   const { t }    = useLang();
   const { isDark } = useTheme();
-  const [orders, setOrders]           = useState([]);
+  const [orders, setOrders]               = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
- 
-  const userData  = safeJSON(localStorage.getItem('userData'), {});
+
+  const userData  = safeParse(localStorage.getItem('userData'), {});
   const guestName = userData?.guestName || userData?.guest?.guest_name || userData?.name || 'Guest';
- 
+
   function handleLogout() {
     localStorage.clear();
     navigate('/');
   }
-  // Reorder: load items from a past order into cart and go to cart page
+
+  /* ── Reorder / Modify ──────────────────────────────────────────────────
+     Only tag items with lock fields when the order has a real orderId.
+     This is the gate: "only if order ID already generated".
+
+     Each item gets:
+       _orderedQty      → the qty that was placed (the locked floor)
+       _orderTimestamp  → when the order was placed (for the 1-min window)
+       _orderId         → the order's ID (presence = item is locked in Cart)
+
+     Items from orders WITHOUT an orderId are loaded as normal cart items
+     (no lock fields) so they remain fully editable.
+  ─────────────────────────────────────────────────────────────────────── */
   function reorderToCart(order) {
     const items = Array.isArray(order.items) ? order.items : [];
     if (!items.length) return;
-    const cartItems = items.map(it => ({
-      id: it.id || it.productId || `reorder-${Date.now()}-${Math.random()}`,
-      name: it.name || it.productName || 'Item',
-      price: Number(it.price) || 0,
-      image: it.image || '',
-      quantity: Number(it.quantity) || 1,
-      customization: it.customization || {},
-      outlet: it.outlet || localStorage.getItem('selectedOutlet') || '',
-      outletName: it.outletName || '',
-      pos_id: it.pos_id || '',
-      requiresAdvancePayment: it.requiresAdvancePayment || false,
-      taxes: it.taxes || []
-    }));
+
+    // Only apply locking when there's a real generated order ID
+    const hasRealOrderId = !!(order.orderId);
+
+    const cartItems = items.map(it => {
+      const base = {
+        id:          it.id || it.productId || `reorder-${Date.now()}-${Math.random()}`,
+        name:        it.name || it.productName || 'Item',
+        price:       Number(it.price) || 0,
+        image:       it.image || '',
+        quantity:    Number(it.quantity) || 1,
+        customization: it.customization || {},
+        outlet:      it.outlet || localStorage.getItem('selectedOutlet') || '',
+        outletName:  it.outletName || '',
+        pos_id:      it.pos_id || '',
+        requiresAdvancePayment: it.requiresAdvancePayment || false,
+        taxes:       it.taxes || [],
+      };
+
+      if (hasRealOrderId) {
+        // Lock fields: Cart will use these to enforce quantity floor
+        base._orderedQty      = Number(it.quantity) || 1;
+        base._orderTimestamp  = order.timestamp || null;
+        base._orderId         = order.orderId;
+      } else {
+        // No real order ID → treat as fresh cart items, fully editable
+        base._orderedQty      = null;
+        base._orderTimestamp  = null;
+        base._orderId         = null;
+      }
+
+      return base;
+    });
+
     localStorage.setItem('cartData', JSON.stringify(cartItems));
     navigate('/cart');
   }
@@ -93,16 +125,16 @@ export default function History() {
         <button className="hist-back" onClick={() => navigate('/menu')}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
         </button>
-          <img src="https://www.hotelogix.com/wp-content/themes/hotelogix/images/hotelogix-logo.svg" alt="HotelOGIX" className="cart-hdr__logo" onError={e=>e.target.style.display='none'} />
-          <div className="cart-hdr__right">
-                <ThemeLangBar compact={true} />
-                <button className="cart-hdr__avatar" title={guestName}>
-                  {guestName.charAt(0).toUpperCase()}
-                </button>
-                <button className="cart-hdr__logout" onClick={handleLogout} title="Logout">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                </button>
-            </div>
+        <img src="https://www.hotelogix.com/wp-content/themes/hotelogix/images/hotelogix-logo.svg" alt="HotelOGIX" className="cart-hdr__logo" onError={e=>e.target.style.display='none'} />
+        <div className="cart-hdr__right">
+          <ThemeLangBar compact={true} />
+          <button className="cart-hdr__avatar" title={guestName}>
+            {guestName.charAt(0).toUpperCase()}
+          </button>
+          <button className="cart-hdr__logout" onClick={handleLogout} title="Logout">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
       </header>
 
       {/* ── SUMMARY CARD ── */}
