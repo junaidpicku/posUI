@@ -209,19 +209,14 @@ export default function Preferences() {
     localStorage.setItem('userData', JSON.stringify(userPayload));
     localStorage.setItem('sessionData', JSON.stringify({ loginTime: new Date().toISOString(), lastActivity: new Date().toISOString() }));
 
-    // Fetch order history
-    try {
-      const hResp = await fetch(`${API_BASE}/api/orders/history?page=1&limit=10&hotel_id=${hotelId}&table_id=${tableId}`, {
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-      });
-      const hRaw = await hResp.json().catch(() => null);
-      let history = (Array.isArray(hRaw) && hRaw) || hRaw?.data || hRaw?.orders || hRaw?.results || [];
-      if (!Array.isArray(history) && hRaw && typeof hRaw === 'object') {
-        const first = Object.values(hRaw).find(v => Array.isArray(v));
-        history = first || [];
-      }
-      localStorage.setItem('orderHistory', JSON.stringify(history));
-    } catch (_) {}
+    // REMOVED: Fetch order history for table-based login
+    // Skip order history API call when isTableBased is true
+    // try {
+    //   const hResp = await fetch(`${API_BASE}/api/orders/history?page=1&limit=10&hotel_id=${hotelId}&table_id=${tableId}`, {
+    //     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+    //   });
+    //   ...
+    // } catch (_) {}
 
     // Skip outlet if outlet_id already known
     if (tableInfo.outlet_id) {
@@ -523,7 +518,9 @@ export default function Preferences() {
           <div className="hotelogix-logo">
             <img src="https://www.hotelogix.com/wp-content/themes/hotelogix/images/hotelogix-logo.svg" alt="HotelOGIX Logo" />
           </div>
-          <div style={{ position:'absolute', top:20, right:20 }}><ThemeLangBar compact={true} /></div>
+          <div className="preferences-theme-bar" style={{ position:'absolute', top:20, right:20, zIndex:10 }}>
+            <ThemeLangBar compact={true} />
+          </div>
 
           {/* Step 1: Outlet Selection */}
           {step === 'outlets' && (

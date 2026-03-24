@@ -289,3 +289,37 @@
   color: var(--txt2);
 }
 [data-theme="dark"] .room-info-tip strong { color: #F5A623; }
+
+/* Update the logo container positioning */
+.preferences-content {
+  position: relative;
+  padding-top: 70px; /* Add space for absolute positioned elements */
+}
+
+.hotelogix-logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .preferences-content {
+    padding-top: 80px;
+  }
+  
+  .hotelogix-logo {
+    top: 15px;
+    left: 15px;
+    max-width: 120px;
+  }
+  
+  /* Theme/Lang bar positioning for mobile */
+  .preferences-content > div[style*="position:absolute"] {
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    left: auto !important;
+  }
+}

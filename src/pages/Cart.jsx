@@ -167,10 +167,8 @@ export default function Cart() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
         </button>
         <img src="https://www.hotelogix.com/wp-content/themes/hotelogix/images/hotelogix-logo.svg" alt="HotelOGIX" className="cart-hdr__logo" onError={e=>e.target.style.display='none'} />
-        <h1 className="cart-hdr__title">My Cart</h1>
         <div className="cart-hdr__right">
           <ThemeLangBar compact={true} />
-          <button className="cart-hdr__hist" onClick={() => navigate('/history')} title="Order History">📋</button>
           <button className="cart-hdr__avatar" title={guestName}>
             {guestName.charAt(0).toUpperCase()}
           </button>

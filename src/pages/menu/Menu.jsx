@@ -120,8 +120,17 @@ const fmtNV = (val, label) => {
 function NutriPills({ item, animate }) {
   const visible = NUTRI.filter(n => getNV(item,n) != null);
   if (!visible.length) return null;
+  
+  const showCount = 2; // Show only 2 pills initially
+  const hasMore = visible.length > showCount;
+  const moreCount = visible.length - showCount;
+  
   return (
-    <div className={`nutri-row${animate?' nutri-row--anim':''}`}>
+    <div 
+      className={`nutri-row${animate?' nutri-row--anim':''}${hasMore?' nutri-row--has-more':''}`}
+      data-more={hasMore ? moreCount : ''}
+      title={hasMore ? `Hover to see ${moreCount} more` : ''}
+    >
       {visible.map((n, i) => {
         const val = getNV(item, n);
         return (
@@ -1299,16 +1308,6 @@ export default function Menu() {
 
           {/* Main filter row: Categories + Veg + Sort + Count */}
           <div className="filter-row">
-            {/* Category pills */}
-            <button className={`flt-pill ${category==='all'?'flt-pill--on':''}`} onClick={() => setCategory('all')}>
-              All ({menuItems.length})
-            </button>
-            {categories.map(cat => (
-              <button key={cat} className={`flt-pill ${category===cat?'flt-pill--on':''}`} onClick={() => setCategory(cat)}>
-                {cat} ({menuItems.filter(i=>i.category?.includes(cat)).length})
-              </button>
-            ))}
-
             {/* Divider */}
             <span className="flt-divider" />
 

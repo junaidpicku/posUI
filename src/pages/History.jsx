@@ -39,6 +39,7 @@ function statusColor(s) {
   if (st==='cancelled') return { bg:'rgba(239,68,68,0.12)',  color:'#dc2626', label:'✕ Cancelled' };
   return { bg:'rgba(107,114,128,0.12)', color:'#6b7280', label: s || 'Pending' };
 }
+const safeJSON  = (s,fb) => { try{return JSON.parse(s);}catch{return fb;} };
 
 export default function History() {
   const navigate = useNavigate();
@@ -46,7 +47,14 @@ export default function History() {
   const { isDark } = useTheme();
   const [orders, setOrders]           = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-
+ 
+  const userData  = safeJSON(localStorage.getItem('userData'), {});
+  const guestName = userData?.guestName || userData?.guest?.guest_name || userData?.name || 'Guest';
+ 
+  function handleLogout() {
+    localStorage.clear();
+    navigate('/');
+  }
   // Reorder: load items from a past order into cart and go to cart page
   function reorderToCart(order) {
     const items = Array.isArray(order.items) ? order.items : [];
@@ -85,10 +93,16 @@ export default function History() {
         <button className="hist-back" onClick={() => navigate('/menu')}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
         </button>
-        <h1 className="hist-hdr-title">Order History</h1>
-        <div className="hist-hdr-right">
-          <ThemeLangBar compact={true} />
-        </div>
+          <img src="https://www.hotelogix.com/wp-content/themes/hotelogix/images/hotelogix-logo.svg" alt="HotelOGIX" className="cart-hdr__logo" onError={e=>e.target.style.display='none'} />
+          <div className="cart-hdr__right">
+                <ThemeLangBar compact={true} />
+                <button className="cart-hdr__avatar" title={guestName}>
+                  {guestName.charAt(0).toUpperCase()}
+                </button>
+                <button className="cart-hdr__logout" onClick={handleLogout} title="Logout">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </div>
       </header>
 
       {/* ── SUMMARY CARD ── */}

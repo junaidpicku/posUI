@@ -384,7 +384,43 @@
 .mc__qty-num { min-width: 22px; text-align: center; font-size: 13px; font-weight: 900; color: #F5A623; padding: 0 2px; }
 
 /* ─── NUTRI PILLS ────────────────────────────── */
-.nutri-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.nutri-row { display: flex; flex-wrap: nowrap; gap: 6px; margin-bottom: 8px; overflow: hidden;
+  position: relative; }
+  .nutri-row--has-more::after {
+  content: '+' attr(data-more);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--txt3);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Hover state to show all pills */
+.nutri-row--has-more:hover {
+  flex-wrap: wrap;
+  overflow: visible;
+  z-index: 10;
+}
+
+.nutri-row--has-more:hover::after {
+  display: none;
+}
+
+/* Make pills initially limited */
+.nutri-row--has-more .nutri-pill:nth-child(n+3) {
+  display: none;
+}
+
+.nutri-row--has-more:hover .nutri-pill {
+  display: flex !important;
+}
 .nutri-row--anim .nutri-pill { animation: nutriPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
 @keyframes nutriPop { from{opacity:0;transform:scale(0.5)} to{opacity:1;transform:scale(1)} }
 .nutri-pill { display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; border-radius: 999px; border: 1.5px solid; font-size: 10px; font-weight: 700; transition: 160ms; }
